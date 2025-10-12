@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Camarcl Plants & Flowers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+
+  <body class="font-sans bg-gray-50 text-gray-800">
+    <!-- 🌿 Navbar -->
+    <nav class="bg-white shadow sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <!-- Logo -->
+        <h1 class="text-2xl font-bold text-green-700">
+          Camarcl Plants & Flowers
+        </h1>
+
+        <!-- Nav Links -->
+        <ul class="hidden md:flex space-x-6 text-gray-700 font-medium">
+          <li><a href="#" class="hover:text-green-600">Home</a></li>
+          <li><a href="#shop" class="hover:text-green-600">Shop</a></li>
+          <li><a href="#about" class="hover:text-green-600">About</a></li>
+          <li><a href="#contact" class="hover:text-green-600">Contact</a></li>
+        </ul>
+
+        <!-- Search + Icons -->
+        <div class="flex items-center space-x-4">
+          <div class="relative">
+            <input
+              type="text"
+              placeholder="Search plants..."
+              class="border rounded-full px-4 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4 absolute right-2 top-1.5 text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-4.35-4.35M9.5 17a7.5 7.5 0 100-15 7.5 7.5 0 000 15z"
+              />
+            </svg>
+          </div>
+
+          <!-- Cart Icon -->
+          <a href="#" class="hover:text-green-600">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6 8H20M7 13l1.6 8m0 0a1 1 0 11-2 0m0 0a1 1 0 002 0M17 21a1 1 0 102 0 1 1 0 00-2 0z"
+              />
+            </svg>
+          </a>
+
+          <!-- Login -->
+          <a
+            href="#login"
+            class="flex items-center gap-1 text-gray-700 hover:text-green-600"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5.121 17.804A4 4 0 019 15h6a4 4 0 013.879 2.804M12 7a4 4 0 110-8 4 4 0 010 8z"
+              />
+            </svg>
+            Sign In
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 🌸 Hero Section -->
+    <section
+      class="relative bg-cover bg-center h-[70vh] flex items-center justify-center"
+      style="background-image: url('https://images.unsplash.com/photo-1524592714635-d77511a4834d?auto=format&fit=crop&w=1500&q=80');"
+    >
+      <div
+        class="bg-black bg-opacity-40 p-8 rounded-xl text-center text-white animate-fadeIn"
+      >
+        <h1 class="text-4xl font-bold mb-3">
+          Camarcl Plants and Flower Shop
+        </h1>
+        <p class="mb-6 text-lg">
+          Discover our curated collection of premium plants and fresh flowers.
+        </p>
+        <div class="space-x-4">
+          <a
+            href="#shop"
+            class="bg-green-600 px-6 py-2 rounded-full text-white font-semibold hover:bg-green-700 transition"
+            >Shop Now</a
+          >
+          <a
+            href="#about"
+            class="bg-white text-green-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition"
+            >Learn More</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- 🌼 Featured Products -->
+    <section class="py-16 bg-gray-50 text-center" id="shop">
+      <h2 class="text-2xl font-bold text-gray-800 mb-2">Featured Products</h2>
+      <p class="text-gray-500 mb-10">
+        Explore our handpicked selection of beautiful plants and flowers
+      </p>
+
+      <div
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 px-6 max-w-7xl mx-auto"
+      >
+        <div
+          class="bg-white shadow-md rounded-xl overflow-hidden hover:scale-105 transform transition duration-300"
+        >
+          <img
+            src="https://images.unsplash.com/photo-1607853554439-0069b612f9e7?auto=format&fit=crop&w=800&q=80"
+            class="w-full h-56 object-cover"
+            alt="Monstera Deliciosa"
+          />
+          <div class="p-4">
+            <h3 class="font-semibold text-gray-700">Monstera Deliciosa</h3>
+            <p class="text-green-700 font-bold mt-2">$45.99</p>
+            <button
+              class="mt-3 bg-green-600 hover:bg-green-700 text-white py-1 px-3 rounded-full text-sm"
+            >
+              Add to Cart
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="bg-white shadow-md rounded-xl overflow-hidden hover:scale-105 transform transition duration-300"
+        >
+          <img
+            src="https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=800&q=80"
+            class="w-full h-56 object-cover"
+            alt="Succulent Collection"
+          />
+          <div class="p-4">
+            <h3 class="font-semibold text-gray-700">Succulent Collection</h3>
+            <p class="text-green-700 font-bold mt-2">$24.99</p>
+            <button
+              class="mt-3 bg-green-600 hover:bg-green-700 text-white py-1 px-3 rounded-full text-sm"
+            >
+              Add to Cart
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="bg-white shadow-md rounded-xl overflow-hidden hover:scale-105 transform transition duration-300"
+        >
+          <img
+            src="https://images.unsplash.com/photo-1579783902641-0c0b3a8864eb?auto=format&fit=crop&w=800&q=80"
+            class="w-full h-56 object-cover"
+            alt="Fiddle Leaf Fig"
+          />
+          <div class="p-4">
+            <h3 class="font-semibold text-gray-700">Fiddle Leaf Fig</h3>
+            <p class="text-green-700 font-bold mt-2">$89.99</p>
+            <button
+              class="mt-3 bg-green-600 hover:bg-green-700 text-white py-1 px-3 rounded-full text-sm"
+            >
+              Add to Cart
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="bg-white shadow-md rounded-xl overflow-hidden hover:scale-105 transform transition duration-300"
+        >
+          <img
+            src="https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=crop&w=800&q=80"
+            class="w-full h-56 object-cover"
+            alt="Pink Rose Bouquet"
+          />
+          <div class="p-4">
+            <h3 class="font-semibold text-gray-700">Pink Rose Bouquet</h3>
+            <p class="text-green-700 font-bold mt-2">$55.00</p>
+            <button
+              class="mt-3 bg-green-600 hover:bg-green-700 text-white py-1 px-3 rounded-full text-sm"
+            >
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10">
+        <a
+          href="#all-products"
+          class="inline-block bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full font-semibold transition"
+          >View All Products</a
+        >
+      </div>
+    </section>
+
+    <!-- 🌱 Footer -->
+    <footer class="bg-gray-100 text-gray-700 py-10 mt-10" id="contact">
+      <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-8">
+        <div>
+          <h3 class="text-lg font-bold text-green-700 mb-2">Camarcl</h3>
+          <p>
+            Your trusted source for beautiful plants and flowers since 2023.
+          </p>
+        </div>
+        <div>
+          <h4 class="font-semibold mb-2">Quick Links</h4>
+          <ul class="space-y-1">
+            <li><a href="#shop" class="hover:text-green-600">Shop</a></li>
+            <li><a href="#about" class="hover:text-green-600">About</a></li>
+            <li><a href="#contact" class="hover:text-green-600">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold mb-2">Customer Service</h4>
+          <ul class="space-y-1">
+            <li>Returns</li>
+            <li>Shipping Info</li>
+            <li>FAQ</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold mb-2">Contact Info</h4>
+          <p>123 Garden Street, Green City, GC 12345</p>
+          <p>(555) 123-4567</p>
+          <p>hello@camarcl.com</p>
+        </div>
+      </div>
+      <div class="text-center mt-8 text-sm text-gray-500">
+        © 2025 Camarcl Plants & Flowers. All rights reserved.
+      </div>
+    </footer>
+
+    <!-- ✨ Smooth Scroll Animation -->
+    <script>
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+          document.querySelector(this.getAttribute("href")).scrollIntoView({
+            behavior: "smooth"
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
