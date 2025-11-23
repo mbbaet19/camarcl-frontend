@@ -12,7 +12,7 @@ const Home = () => {
           Camarcl Plants and Flower Shop
         </h1>
         <p className="text-gray-600 mb-6">
-          Discover our curated collection of premium plants and fresh flowers.
+          Your trusted partner in growing nature at home.
         </p>
         <div className="flex gap-4">
           <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg">
