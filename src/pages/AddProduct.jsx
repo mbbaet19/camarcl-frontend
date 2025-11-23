@@ -19,6 +19,9 @@ function AddProduct() {
       await addDoc(collection(db, "products"), {
         name,
         price: parseFloat(price),
+        
+
+        
         image,
         description,
       });

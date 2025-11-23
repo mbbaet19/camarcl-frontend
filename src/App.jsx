@@ -7,6 +7,9 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import AddProduct from "./pages/AddProduct";
+import CartPage from "./pages/CartPage";
+import Checkout from "./pages/Checkout";
+
 import { CartProvider } from "./context/CartContext";
 
 function App() {
@@ -14,8 +17,8 @@ function App() {
   const [showSignUp, setShowSignUp] = useState(false);
 
   return (
-    <CartProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <CartProvider>
         <Navbar onSignIn={() => setShowSignIn(true)} onSignUp={() => setShowSignUp(true)} />
 
         {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
@@ -24,12 +27,13 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
-          <Route path="/add" element={<AddProduct />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<Checkout />} />
         </Routes>
 
         <Footer />
-      </BrowserRouter>
-    </CartProvider>
+      </CartProvider>
+    </BrowserRouter>
   );
 }
 

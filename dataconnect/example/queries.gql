@@ -1,0 +1,27 @@
+mutation AddWatchEvent($movieId: UUID!, $userId: UUID!, $location: String, $watchDate: Date!) @auth(level: USER) {
+  watchEvent_insert(data: {movieId: $movieId, userId: $userId, location: $location, watchDate: $watchDate})
+}
+
+query GetPublicMovieLists @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  movieLists(where: {isPublic: {eq: true}}) {
+    id
+    name
+    description
+  }
+}
+
+mutation CreateMovieList($name: String!, $description: String, $isPublic: Boolean!) @auth(level: USER) {
+  movieList_insert(data: {name: $name, description: $description, isPublic: $isPublic, userId_expr: "auth.uid"})
+}
+
+query GetMyReviews @auth(level: USER) {
+  reviews(where: {userId: {eq_expr: "auth.uid"}}) {
+    id
+    rating
+    reviewText
+    movie {
+      id
+      title
+    }
+  }
+}

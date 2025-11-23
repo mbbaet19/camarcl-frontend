@@ -4,28 +4,28 @@ const products = [
   {
     id: 1,
     name: "Monstera Deliciosa",
-    price: "$45.99",
-    image: "/plants/monstera.jpg",
+    price: "P350",
+    image: "monstera.jpg",
     tag: "Featured",
   },
   {
     id: 2,
     name: "Succulent Collection",
-    price: "$24.99",
-    image: "/plants/succulents.jpg",
+    price: "P500",
+    image: "succulent.jpg",
   },
   {
     id: 3,
     name: "Fiddle Leaf Fig",
-    price: "$89.99",
-    image: "/plants/fiddle-leaf.jpg",
+    price: "P800",
+    image: "fiddle-leaf.jpg",
     tag: "Featured",
   },
   {
     id: 4,
     name: "Pink Rose Bouquet",
-    price: "$55.00",
-    image: "/plants/roses.jpg",
+    price: "P750",
+    image: "romantic-bouquet-pink-roses.jpg",
   },
 ];
 

@@ -15,7 +15,7 @@ const Hero = () => {
           Camarcl Plants and Flower Shop
         </h1>
         <p className="mb-6 text-lg">
-          Discover our curated collection of premium plants and fresh flowers for every occasion.
+         Your trusted partner in growing nature at home.
         </p>
 
         {/* ✅ Buttons */}

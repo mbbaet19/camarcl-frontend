@@ -1,0 +1,114 @@
+mutation SeedData @transaction @auth(level: PUBLIC, insecureReason: "This operation is intended for seeding data and is safe to expose.") {
+  user_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      createdAt: "2024-04-27T10:00:00Z",
+      displayName: "Demo User 1",
+      email: "demo1@example.com",
+      photoUrl: "http://example.com/avatar1.jpg"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      createdAt: "2024-04-27T11:00:00Z",
+      displayName: "Demo User 2",
+      email: "demo2@example.com",
+      photoUrl: "http://example.com/avatar2.jpg"
+    }
+  ])
+  movie_insertMany(data: [
+    {
+      id: "650e8400-e29b-41d4-a716-446655440000",
+      createdAt: "2024-04-27T12:00:00Z",
+      genres: ["Action", "Sci-Fi"],
+      releaseYear: 2020,
+      runtimeMinutes: 120,
+      summary: "A demo movie.",
+      title: "Demo Movie 1"
+    },
+    {
+      id: "650e8400-e29b-41d4-a716-446655440001",
+      createdAt: "2024-04-27T13:00:00Z",
+      genres: ["Comedy"],
+      releaseYear: 2022,
+      runtimeMinutes: 90,
+      summary: "Another demo movie.",
+      title: "Demo Movie 2"
+    }
+  ])
+  movieList_insertMany(data: [
+    {
+      id: "750e8400-e29b-41d4-a716-446655440000",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      createdAt: "2024-04-27T14:00:00Z",
+      description: "A demo movie list.",
+      isPublic: true,
+      name: "Demo List 1",
+      updatedAt: "2024-04-27T14:00:00Z"
+    },
+    {
+      id: "750e8400-e29b-41d4-a716-446655440001",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      createdAt: "2024-04-27T15:00:00Z",
+      description: "Another demo movie list.",
+      isPublic: false,
+      name: "Demo List 2",
+      updatedAt: "2024-04-27T15:00:00Z"
+    }
+  ])
+  movieListEntry_insertMany(data: [
+    {
+      id: "850e8400-e29b-41d4-a716-446655440000",
+      movieId: "650e8400-e29b-41d4-a716-446655440000",
+      movieListId: "750e8400-e29b-41d4-a716-446655440000",
+      note: "A demo note.",
+      position: 1
+    },
+    {
+      id: "850e8400-e29b-41d4-a716-446655440001",
+      movieId: "650e8400-e29b-41d4-a716-446655440001",
+      movieListId: "750e8400-e29b-41d4-a716-446655440001",
+      note: "Another demo note.",
+      position: 2
+    }
+  ])
+  watchEvent_insertMany(data: [
+    {
+      id: "950e8400-e29b-41d4-a716-446655440000",
+      movieId: "650e8400-e29b-41d4-a716-446655440000",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      location: "Home",
+      watchDate: "2024-04-27"
+    },
+    {
+      id: "950e8400-e29b-41d4-a716-446655440001",
+      movieId: "650e8400-e29b-41d4-a716-446655440001",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      location: "Work",
+      watchDate: "2024-04-28"
+    }
+  ])
+  review_insertMany(data: [
+    {
+      id: "a50e8400-e29b-41d4-a716-446655440000",
+      movieId: "650e8400-e29b-41d4-a716-446655440000",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      watchEventId: "950e8400-e29b-41d4-a716-446655440000",
+      createdAt: "2024-04-27T16:00:00Z",
+      isPublic: true,
+      rating: 5,
+      reviewText: "A demo review.",
+      updatedAt: "2024-04-27T16:00:00Z"
+    },
+    {
+      id: "a50e8400-e29b-41d4-a716-446655440001",
+      movieId: "650e8400-e29b-41d4-a716-446655440001",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      watchEventId: "950e8400-e29b-41d4-a716-446655440001",
+      createdAt: "2024-04-27T17:00:00Z",
+      isPublic: false,
+      rating: 4,
+      reviewText: "Another demo review.",
+      updatedAt: "2024-04-27T17:00:00Z"
+    }
+  ])
+}
