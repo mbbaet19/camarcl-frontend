@@ -35,7 +35,7 @@ const Home = () => {
           {/* Card 1 */}
           <div className="bg-white rounded-2xl shadow p-4 hover:shadow-lg transition">
             <img
-              src="/plants/monstera.jpg"
+              src="/monstera.png"
               alt="Monstera Deliciosa"
               className="rounded-lg mb-4"
             />
@@ -49,7 +49,7 @@ const Home = () => {
           {/* Card 2 */}
           <div className="bg-white rounded-2xl shadow p-4 hover:shadow-lg transition">
             <img
-              src="/plants/succulent.jpg"
+              src="/succulent.jpg"
               alt="Succulent Collection"
               className="rounded-lg mb-4"
             />
@@ -63,7 +63,7 @@ const Home = () => {
           {/* Card 3 */}
           <div className="bg-white rounded-2xl shadow p-4 hover:shadow-lg transition">
             <img
-              src="/plants/fiddle-leaf.jpg"
+              src="/fiddle-leaf.jpg"
               alt="Fiddle Leaf Fig"
               className="rounded-lg mb-4"
             />
@@ -77,7 +77,7 @@ const Home = () => {
           {/* Card 4 */}
           <div className="bg-white rounded-2xl shadow p-4 hover:shadow-lg transition">
             <img
-              src="/plants/pink-rose.jpg"
+              src="/romantic-bouquet-pink-roses.jpg"
               alt="Pink Rose Bouquet"
               className="rounded-lg mb-4"
             />
