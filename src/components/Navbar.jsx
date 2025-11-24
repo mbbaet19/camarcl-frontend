@@ -35,6 +35,9 @@ function Navbar({ onSignIn, onSignUp }) {
           <li>
             <Link to="/contact" className="hover:text-green-600">Contact</Link>
           </li>
+          <li>
+            <Link to="/cart" className="text-gray-700 hover:text-green-700">Cart</Link>
+          </li>
         </ul>
 
         {/* Right: Search, Cart, and Auth Buttons */}

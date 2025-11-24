@@ -15,12 +15,13 @@ const Home = () => {
           Your trusted partner in growing nature at home.
         </p>
         <div className="flex gap-4">
-          <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg">
+          <Link to = "/products" className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg">
             Shop Now
-          </button>
-          <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg">
+          </Link>
+          
+          <Link to ="/about" className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg">
             Learn More
-          </button>
+          </Link>
         </div>
       </section>
 
