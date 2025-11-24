@@ -55,16 +55,7 @@ function Navbar({ onSignIn, onSignUp }) {
             />
           </div>
 
-          {/* Cart */}
-          <Link to="/cart" className="relative hover:text-green-600">
-            <ShoppingCart size={22} />
-            {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs font-semibold w-4 h-4 flex items-center justify-center rounded-full">
-                {cartCount}
-              </span>
-            )}
-          </Link>
-
+          
           {/* Sign In / Sign Up */}
           <div className="flex items-center space-x-2">
             <button
