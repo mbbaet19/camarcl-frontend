@@ -11,6 +11,8 @@ import CartPage from "./pages/CartPage";
 import Checkout from "./pages/Checkout";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Policies from "./pages/Policies";
+import FAQ from "./pages/FAQ";
 
 
 import { CartProvider } from "./context/CartContext";
@@ -33,6 +35,8 @@ function App() {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} /> 
+          <Route path="/policies" element={<Policies />} />
+          <Route path="/faq" element={<FAQ />} />
           <Route path="/checkout" element={<Checkout />} />
         </Routes>
 
