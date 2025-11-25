@@ -43,7 +43,7 @@ export default function Home() {
 
         <div className="mt-6 flex gap-4">
           <Link
-            to="/products"
+            to="/shop"
             className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700"
           >
             Shop Now
@@ -126,7 +126,7 @@ export default function Home() {
 
         <div className="text-center mt-10">
           <Link
-            to="/products"
+            to="/shop"
             className="px-6 py-3 bg-green-600 text-white rounded-lg shadow hover:bg-green-700"
           >
             View All Products

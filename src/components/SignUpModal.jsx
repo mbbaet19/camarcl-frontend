@@ -1,112 +1,144 @@
 import React, { useState } from "react";
-import { auth, db } from "../firebaseConfig.js";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../firebaseConfig.js";
 import { doc, setDoc } from "firebase/firestore";
 
 const SignUpModal = ({ onClose }) => {
-  const [name, setName] = useState("");
-  const [role, setRole] = useState("customer");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "customer",
+  });
+
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
+      // CREATE AUTH USER
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        email,
-        password
+        form.email,
+        form.password
       );
 
       const user = userCredential.user;
 
-      // Save to Firestore
+      // SAVE USER INFO IN FIRESTORE
       await setDoc(doc(db, "users", user.uid), {
-        name,
-        email,
-        role,
+        name: form.name,
+        email: form.email,
+        role: form.role,
         createdAt: new Date(),
       });
 
+      alert("Account created successfully!");
       onClose();
-      window.location.href = "/profile"; // Redirect
     } catch (err) {
-      setError(err.message.replace("Firebase:", ""));
+      console.error(err);
+      setError(err.message);
     }
+
+    setLoading(false);
   };
 
-  const stopPropagation = (e) => e.stopPropagation();
-
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white p-6 rounded-lg w-96 shadow-lg"
-        onClick={stopPropagation}
-      >
-        <h2 className="text-2xl font-bold mb-4 text-center">Create Account</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+      <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-lg relative">
 
-        {error && (
-          <p className="text-red-600 text-sm mb-2 text-center">{error}</p>
-        )}
-
-        <form onSubmit={handleSignUp}>
-          <label className="text-sm block mb-1">Full Name</label>
-          <input
-            type="text"
-            className="w-full p-2 border rounded mb-3"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-
-          <label className="text-sm block mb-1">Email</label>
-          <input
-            type="email"
-            className="w-full p-2 border rounded mb-3"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-          <label className="text-sm block mb-1">Password</label>
-          <input
-            type="password"
-            className="w-full p-2 border rounded mb-3"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          <label className="text-sm block mb-1">Role</label>
-          <select
-            className="w-full p-2 border rounded mb-4"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-          >
-            <option value="customer">Customer</option>
-            <option value="admin">Admin / Owner</option>
-          </select>
-
-          <button
-            type="submit"
-            className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
-          >
-            Create Account
-          </button>
-        </form>
-
+        {/* Close Button */}
         <button
-          className="mt-4 w-full py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
+          className="absolute top-3 right-3 text-gray-500 hover:text-black"
           onClick={onClose}
         >
-          Cancel
+          ✕
         </button>
+
+        <h2 className="text-2xl font-bold text-center mb-4 text-green-700">
+          Create an Account
+        </h2>
+
+        <form onSubmit={handleSignUp} className="space-y-4">
+
+          {/* NAME */}
+          <div>
+            <label className="block font-medium">Full Name</label>
+            <input
+              type="text"
+              name="name"
+              required
+              value={form.name}
+              onChange={handleChange}
+              placeholder="Enter your full name"
+              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+
+          {/* EMAIL */}
+          <div>
+            <label className="block font-medium">Email</label>
+            <input
+              type="email"
+              name="email"
+              required
+              value={form.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
+              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+
+          {/* PASSWORD */}
+          <div>
+            <label className="block font-medium">Password</label>
+            <input
+              type="password"
+              name="password"
+              required
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Choose a password"
+              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+
+          {/* ROLE */}
+          <div>
+            <label className="block font-medium">Account Type</label>
+            <select
+              name="role"
+              value={form.role}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500"
+            >
+              <option value="customer">Customer</option>
+              <option value="admin">Admin / Owner</option>
+            </select>
+          </div>
+
+          {/* ERROR */}
+          {error && (
+            <p className="text-red-600 text-sm text-center">{error}</p>
+          )}
+
+          {/* SUBMIT */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition"
+          >
+            {loading ? "Creating..." : "Create Account"}
+          </button>
+        </form>
       </div>
     </div>
   );

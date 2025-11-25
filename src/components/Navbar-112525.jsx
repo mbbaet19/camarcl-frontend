@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, ShoppingCart, ChevronDown } from "lucide-react";
+import { Search, ShoppingCart } from "lucide-react";
 import { auth, db } from "../firebaseConfig.js";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 const Navbar = ({ onSignIn, onSignUp }) => {
   const [userData, setUserData] = useState(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -36,32 +35,26 @@ const Navbar = ({ onSignIn, onSignUp }) => {
 
         {/* LOGO */}
         <Link to="/" className="flex items-center space-x-2">
-          <img src="/logo.png" alt="logo" className="w-8 h-8" />
+          <img
+            src="/logo.png"
+            alt="logo"
+            className="w-8 h-8"
+          />
           <span className="font-semibold text-lg text-gray-800">
             Camarcl Plants & Flowers
           </span>
         </Link>
 
-        {/* NAVIGATION LINKS */}
+        {/* LINKS */}
         <ul className="hidden md:flex space-x-6 font-medium text-gray-700">
           <li><Link to="/" className="hover:text-green-600">Home</Link></li>
           <li><Link to="/products" className="hover:text-green-600">Shop</Link></li>
           <li><Link to="/about" className="hover:text-green-600">About</Link></li>
           <li><Link to="/contact" className="hover:text-green-600">Contact</Link></li>
-
-          {/* Admin Dashboard link */}
-          {/*userData?.role === "admin" && (
-            <li>
-              <Link to="/admin" className="hover:text-green-600 text-red-600 font-semibold">
-                Admin Dashboard
-              </Link>
-            </li>
-          )*/}
         </ul>
 
         {/* RIGHT SIDE */}
         <div className="flex items-center space-x-4">
-
           {/* Search */}
           <div className="relative hidden sm:block">
             <input
@@ -72,63 +65,30 @@ const Navbar = ({ onSignIn, onSignUp }) => {
             <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
           </div>
 
-          {/* Cart */}
+          {/* CART */}
           <Link to="/cart" className="relative hover:text-green-600">
             <ShoppingCart size={22} />
           </Link>
 
-          {/* AUTH AREA */}
+          {/* USER AREA */}
           {!userData ? (
             <>
-              <button onClick={onSignIn} className="hover:text-green-600">
-                Sign In
-              </button>
-              <button onClick={onSignUp} className="hover:text-green-600">
-                Register
-              </button>
+              <button onClick={onSignIn} className="hover:text-green-600">Sign In</button>
+              <button onClick={onSignUp} className="hover:text-green-600">Register</button>
             </>
           ) : (
-            // DROPDOWN MENU
-            <div className="relative">
+            <div className="flex items-center space-x-3">
+              <span className="font-medium text-green-700">
+                Hello, {userData.name}!
+              </span>
               <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-1 font-medium text-green-700 hover:text-green-800"
+                onClick={handleLogout}
+                className="text-red-600 hover:text-red-800"
               >
-                {userData.name}
-                <ChevronDown size={18} />
+                Logout
               </button>
-
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-44 bg-white shadow-lg rounded-md border p-2">
-                  <Link
-                    to="/profile"
-                    className="block px-3 py-2 hover:bg-gray-100 rounded-md"
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    My Profile
-                  </Link>
-
-                  {userData.role === "admin" && (
-                    <Link
-                      to="/admin"
-                      className="block px-3 py-2 hover:bg-gray-100 text-red-600 font-semibold rounded-md"
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      Admin Dashboard
-                    </Link>
-                  )}
-
-                  <button
-                    className="w-full text-left px-3 py-2 hover:bg-gray-100 text-red-600 rounded-md"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
             </div>
           )}
-
         </div>
       </div>
     </nav>
