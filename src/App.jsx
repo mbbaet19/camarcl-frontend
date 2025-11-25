@@ -1,5 +1,10 @@
-import React, { useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+//import React, { useState } from "react";
+//import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebaseConfig.js";
 import SignInModal from "./components/SignInModal";
 import SignUpModal from "./components/SignUpModal";
 import Navbar from "./components/Navbar";
@@ -13,6 +18,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Policies from "./pages/Policies";
 import FAQ from "./pages/FAQ";
+import Profile from "./pages/Profile";
 
 
 import { CartProvider } from "./context/CartContext";
@@ -20,6 +26,16 @@ import { CartProvider } from "./context/CartContext";
 function App() {
   const [showSignIn, setShowSignIn] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
+
+  const [user, setUser] = useState(null);
+
+   // Listen to login/logout state
+      useEffect(() => {
+        const unsub = onAuthStateChanged(auth, (currentUser) => {
+          setUser(currentUser);
+        });
+        return () => unsub();
+      }, []);
 
   return (
     <BrowserRouter>
@@ -38,6 +54,14 @@ function App() {
           <Route path="/policies" element={<Policies />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/checkout" element={<Checkout />} />
+          
+          {/* 🔐 PROTECTED ROUTE */}
+          <Route
+            path="/profile"
+            element={
+              user ? <Profile /> : <Navigate to="/profile" replace />
+            }
+          />
         </Routes>
 
         <Footer />

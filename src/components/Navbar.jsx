@@ -1,79 +1,98 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ShoppingCart, Search } from "lucide-react";
-import { useCart } from "../context/CartContext";
+import { Search, ShoppingCart } from "lucide-react";
+import { auth, db } from "../firebaseConfig.js";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
-function Navbar({ onSignIn, onSignUp }) {
-  const { cartCount } = useCart();
+const Navbar = ({ onSignIn, onSignUp }) => {
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const ref = doc(db, "users", user.uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          setUserData(snap.data());
+        }
+      } else {
+        setUserData(null);
+      }
+    });
+
+    return () => unsub();
+  }, []);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    window.location.href = "/";
+  };
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Left: Logo and Name */}
-        <div className="flex items-center space-x-2">
+
+        {/* LOGO */}
+        <Link to="/" className="flex items-center space-x-2">
           <img
             src="/logo.png"
             alt="logo"
             className="w-8 h-8"
           />
-          <span className="font-semibold text-lg text-green-700">
+          <span className="font-semibold text-lg text-gray-800">
             Camarcl Plants & Flowers
           </span>
-        </div>
+        </Link>
 
-        {/* Center: Nav Links */}
+        {/* LINKS */}
         <ul className="hidden md:flex space-x-6 font-medium text-gray-700">
-          <li>
-            <Link to="/" className="hover:text-green-600">Home</Link>
-          </li>
-          <li>
-            <Link to="/products" className="hover:text-green-600">Shop</Link>
-          </li>
-          <li>
-            <Link to="/about" className="hover:text-green-600">About</Link>
-          </li>
-          <li>
-            <Link to="/contact" className="hover:text-green-600">Contact</Link>
-          </li>
-         
+          <li><Link to="/" className="hover:text-green-600">Home</Link></li>
+          <li><Link to="/products" className="hover:text-green-600">Shop</Link></li>
+          <li><Link to="/about" className="hover:text-green-600">About</Link></li>
+          <li><Link to="/contact" className="hover:text-green-600">Contact</Link></li>
         </ul>
 
-        {/* Right: Search, Cart, and Auth Buttons */}
+        {/* RIGHT SIDE */}
         <div className="flex items-center space-x-4">
-          {/* Search Bar */}
+          {/* Search */}
           <div className="relative hidden sm:block">
             <input
               type="text"
               placeholder="Search plants..."
-              className="border border-gray-300 rounded-full pl-10 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="border border-gray-300 rounded-full pl-10 pr-3 py-1.5 text-sm"
             />
-            <Search
-              size={16}
-              className="absolute left-3 top-2.5 text-gray-400"
-            />
+            <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
           </div>
 
-          
-          {/* Sign In / Sign Up */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={onSignIn}
-              className="text-gray-700 hover:text-green-600 font-medium"
-            >
-              Sign In
-            </button>
-            <span className="text-gray-400">|</span>
-            <button
-              onClick={onSignUp}
-              className="text-gray-700 hover:text-green-600 font-medium"
-            >
-              Sign Up
-            </button>
-          </div>
+          {/* CART */}
+          <Link to="/cart" className="relative hover:text-green-600">
+            <ShoppingCart size={22} />
+          </Link>
+
+          {/* USER AREA */}
+          {!userData ? (
+            <>
+              <button onClick={onSignIn} className="hover:text-green-600">Sign In</button>
+              <button onClick={onSignUp} className="hover:text-green-600">Register</button>
+            </>
+          ) : (
+            <div className="flex items-center space-x-3">
+              <span className="font-medium text-green-700">
+                Hello, {userData.name}!
+              </span>
+              <button
+                onClick={handleLogout}
+                className="text-red-600 hover:text-red-800"
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </nav>
   );
-}
+};
 
 export default Navbar;
