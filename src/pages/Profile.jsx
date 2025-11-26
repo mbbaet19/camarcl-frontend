@@ -1,77 +1,143 @@
-import React, { useEffect, useState } from "react";
-import { auth, db } from "../firebaseConfig.js";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+import React, { useEffect, useState, useCallback, Suspense, lazy } from "react";
+import axios from "axios";
 
-export default function ProfilePage() {
-  const [user, setUser] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
+const API_URL = process.env.REACT_APP_API_URL;
+
+
+const FiUser = lazy(() => import("react-icons/fi").then(mod => ({ default: mod.FiUser })));
+const FiSave = lazy(() => import("react-icons/fi").then(mod => ({ default: mod.FiSave })));
+const FiX = lazy(() => import("react-icons/fi").then(mod => ({ default: mod.FiX })));
+const FiEdit2 = lazy(() => import("react-icons/fi").then(mod => ({ default: mod.FiEdit2 })));
+
+export default function Profile() {
+  const [profile, setProfile] = useState({
+    first_name: "",
+    middle_name: "",
+    last_name: "",
     email: "",
-    role: "",
+    contact: "",
   });
+  const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        const docRef = doc(db, "users", currentUser.uid);
-        const userSnap = await getDoc(docRef);
-        if (userSnap.exists()) {
-          setFormData(userSnap.data());
-        }
-      }
-    });
-    return () => unsubscribe();
+  const fetchProfile = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API_URL}/admin/profile`);
+      setProfile(res.data);
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  useEffect(() => { fetchProfile(); }, [fetchProfile]);
 
-  const handleUpdate = async () => {
-    if (!user) return;
-    const docRef = doc(db, "users", user.uid);
-    await updateDoc(docRef, formData);
-    alert("Profile updated successfully!");
-  };
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setProfile(prev => ({ ...prev, [name]: value }));
+  }, []);
 
-  if (!user) return <p>Loading...</p>;
+  const handleSave = useCallback(async () => {
+    try {
+      await axios.put(`${API_URL}/admin/profile`, profile);
+      setEditMode(false);
+      alert("Profile updated successfully!");
+    } catch (err) {
+      console.error("Error updating profile:", err);
+    }
+  }, [profile]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-50" aria-busy="true">
+        <p className="text-gray-500 text-lg">Loading profile...</p>
+      </main>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Profile</h1>
+    <main className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold text-green-700 mb-6">Profile</h1>
 
-      <label className="block mb-2">Name</label>
-      <input
-        name="name"
-        value={formData.name}
-        onChange={handleChange}
-        className="border p-2 w-full rounded mb-4"
-      />
+        <section className="bg-white shadow-sm sm:shadow-md lg:shadow-lg rounded-2xl p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {["first_name", "middle_name", "last_name"].map(field => (
+              <div key={field}>
+                <label htmlFor={field} className="text-sm text-gray-500 capitalize">{field.replace("_", " ")}</label>
+                {editMode ? (
+                  <input
+                    id={field}
+                    name={field}
+                    value={profile[field]}
+                    onChange={handleChange}
+                    className="mt-1 w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                ) : (
+                  <p className="mt-1 font-medium text-gray-700">{profile[field] || "-"}</p>
+                )}
+              </div>
+            ))}
+          </div>
 
-      <label className="block mb-2">Email</label>
-      <input
-        name="email"
-        value={formData.email}
-        disabled
-        className="border p-2 w-full rounded mb-4 bg-gray-200"
-      />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {["email", "contact"].map(field => (
+              <div key={field}>
+                <label htmlFor={field} className="text-sm text-gray-500">
+                  {field === "email" ? "Email Address:" : "Contact Number:"}
+                </label>
+                {editMode ? (
+                  <input
+                    id={field}
+                    name={field}
+                    type={field === "email" ? "email" : "text"}
+                    value={profile[field]}
+                    onChange={handleChange}
+                    className="mt-1 w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                ) : (
+                  <p className="mt-1 font-medium text-gray-700">{profile[field] || "-"}</p>
+                )}
+              </div>
+            ))}
+          </div>
 
-      <label className="block mb-2">Role</label>
-      <input
-        name="role"
-        value={formData.role}
-        disabled
-        className="border p-2 w-full rounded mb-4 bg-gray-200"
-      />
-
-      <button
-        onClick={handleUpdate}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Update
-      </button>
-    </div>
+          <Suspense fallback={<div>Loading buttons...</div>}>
+            <div className="flex flex-wrap gap-4 mt-4">
+              {editMode ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    className="flex items-center gap-2 w-full sm:w-auto justify-center bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <FiSave className="w-5 h-5" />
+                    Save Changes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditMode(false)}
+                    className="flex items-center gap-2 w-full sm:w-auto justify-center bg-gray-300 px-5 py-2 rounded-lg hover:bg-gray-400 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  >
+                    <FiX className="w-5 h-5" />
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setEditMode(true)}
+                  className="flex items-center gap-2 w-full sm:w-auto justify-center bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <FiEdit2 className="w-5 h-5" />
+                  Edit Profile
+                </button>
+              )}
+            </div>
+          </Suspense>
+        </section>
+      </div>
+    </main>
   );
 }
