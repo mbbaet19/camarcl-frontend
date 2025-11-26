@@ -1,30 +1,14 @@
 // src/pages/Home.jsx
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebaseConfig.js";
+//import { collection, getDocs } from "firebase/firestore";
+//import { db } from "../firebaseConfig.js";
 import { useCart } from "../context/CartContext";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
   const { addToCart } = useCart();
 
-  // Load Featured Products from Firestore
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const ref = collection(db, "products");
-      const snapshot = await getDocs(ref);
-
-      const list = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      setProducts(list.slice(0, 4)); // Show only 4 featured products
-    };
-
-    fetchProducts();
-  }, []);
 
   return (
     <div className="w-full">
