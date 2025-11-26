@@ -5,6 +5,12 @@
 /.pnp
 .pnp.js
 
+# Backend environment file
+backend/.env
+
+# Frontend environment files if any
+.env
+
 # testing
 /coverage
 
