@@ -1,7 +1,5 @@
 // src/pages/Shop.jsx
 import React, { useEffect, useState } from "react";
-import { db } from "../firebaseConfig.js";
-import { collection, onSnapshot } from "firebase/firestore";
 import { useCart } from "../context/CartContext"; // if you already have a cart context
 
 export default function Shop() {

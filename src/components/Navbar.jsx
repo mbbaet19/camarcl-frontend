@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, ShoppingCart, ChevronDown } from "lucide-react";
-import { auth, db } from "../firebaseConfig.js";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 
 const Navbar = ({ onSignIn, onSignUp }) => {
   const [userData, setUserData] = useState(null);

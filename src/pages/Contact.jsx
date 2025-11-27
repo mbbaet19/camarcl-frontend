@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Mail, Phone, MapPin, Facebook, Instagram } from "lucide-react";
-import { db } from "../firebaseConfig.js";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+
 
 const Contact = () => {
   const [form, setForm] = useState({

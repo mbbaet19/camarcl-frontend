@@ -1,8 +1,7 @@
 // src/pages/Checkout.jsx
 import React, { useState } from "react";
 import { useCart } from "../context/CartContext";
-import { db } from "../firebaseConfig";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+
 
 const Checkout = () => {
   const { cartItems, clearCart, cartTotal } = useCart();

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../firebaseConfig.js";
-import { doc, setDoc } from "firebase/firestore";
+
 
 const SignUpModal = ({ onClose }) => {
   const [form, setForm] = useState({
