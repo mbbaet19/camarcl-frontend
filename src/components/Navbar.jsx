@@ -86,15 +86,16 @@ return (
           {/* AUTH AREA */}
           {!userData ? (
             <>
-              <button onClick={onSignIn} className="hover:text-green-600">
-                Sign In
+              <button onClick={() => navigate("/register")}
+                className="hover:text-green-600">
+                Register
               </button>
               {/* Register now goes to Login page */}
               <button
                 onClick={() => navigate("/login")}
                 className="hover:text-green-600"
               >
-                Register
+                Login
               </button>
             </>
           ) : (

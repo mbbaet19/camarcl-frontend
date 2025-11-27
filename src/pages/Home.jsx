@@ -25,7 +25,7 @@ export default function Home() {
       {/* HERO / BANNER SECTION */}
       <div
         className="w-full h-[420px] bg-cover bg-center flex flex-col items-center justify-center text-center px-4"
-        style={{ backgroundImage: "url('./assets/hero-bg.png')" }}
+        style={{ backgroundImage: "url('/display.jpg')" }}
       >
         <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
           Camarcl Plants and Flower Shop
