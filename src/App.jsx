@@ -69,7 +69,7 @@ function App() {
           <Route path="/policies" element={<Policies />} />
           <Route path="/faq" element={<FAQ />} />
 
-          <Route path="/login" element={<Login setUser={setUser} />} />
+          <Route path="/login" element={<Login onLogin={setUser} />} />
           <Route path="/register" element={<Register />} />   {/* ✅ NEW ROUTE */}
 
           {/* Protected routes */}

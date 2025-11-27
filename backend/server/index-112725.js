@@ -1,4 +1,3 @@
-// index.js
 import express from "express";
 import mysql from "mysql2/promise";
 import cors from "cors";
@@ -9,7 +8,6 @@ import { Server } from "socket.io";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { v2 as cloudinary } from "cloudinary";
 import session from "express-session";
-import bcrypt from "bcryptjs";
 
 dotenv.config();
 
@@ -20,18 +18,18 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// Express setup
 const app = express();
 const PORT = process.env.PORT || 5500;
-const isProd = process.env.NODE_ENV === "production";
 
-// CORS
+// Middleware
 app.use(cors({
   origin: [
     "http://localhost:3000",
     "http://localhost:5173",
     "https://camarcl-flowershop-frontend.vercel.app",
-    process.env.FRONTEND_URL
-  ].filter(Boolean),
+    // process.env.FRONTEND_URL
+  ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true
 }));
@@ -39,20 +37,18 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session middleware
 app.use(session({
   secret: process.env.SESSION_SECRET || "superSecretKey123",
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: isProd,                    // true in production (HTTPS), false for local dev
-    sameSite: isProd ? "none" : "lax", // none for cross-site in production, lax for dev
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 // 1 day
-  }
+      secure: true,               // MUST be true on Railway
+      sameSite: "none",           // allow cross-site cookies
+      httpOnly: true
+    }
+
 }));
 
-// MySQL pool
 const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -64,7 +60,7 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
-// Test connection
+// Test the DB connection
 const testConnection = async () => {
   try {
     const conn = await db.getConnection();
@@ -75,13 +71,16 @@ const testConnection = async () => {
     setTimeout(testConnection, 5000);
   }
 };
+
 testConnection();
+
 
 process.on("unhandledRejection", (err) => {
   console.error("Unhandled promise rejection:", err);
 });
 
-// Socket.IO
+
+// Socket.IO setup
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
@@ -90,7 +89,7 @@ const io = new Server(httpServer, {
       "http://localhost:5173",
       "https://camarcl-flowershop-frontend.vercel.app",
       process.env.FRONTEND_URL
-    ].filter(Boolean)
+    ]
   }
 });
 
@@ -99,7 +98,7 @@ io.on("connection", socket => {
   socket.on("disconnect", () => console.log("Client disconnected:", socket.id));
 });
 
-// Multer/Cloudinary storage
+// Multer + Cloudinary Storage
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
@@ -111,6 +110,7 @@ const storage = new CloudinaryStorage({
 const upload = multer({ storage });
 
 // Helpers
+
 const requireAdmin = (req, res, next) => {
   if (!req.session.user || req.session.user.role !== "admin") {
     return res.status(401).json({ error: "Unauthorized. Admin login required." });
@@ -139,11 +139,14 @@ const sendNotification = async (type, reference_id, message) => {
 
 const lowStockNotification = async (product) => {
   if (!product || product.stock == null) return;
+
   const stock = Number(product.stock);
   if (isNaN(stock)) return;
 
+  // Normalize: get fresh product from DB
   const [rows] = await db.query("SELECT id, name, stock FROM products WHERE id=?", [product.id]);
   if (!rows.length) return;
+
   const freshProduct = rows[0];
 
   if (Number(freshProduct.stock) < 20) {
@@ -155,8 +158,10 @@ const lowStockNotification = async (product) => {
   }
 };
 
+
 const orderStatusNotification = async (order) => {
   if (!order.status) return;
+
   const status = order.status.toLowerCase();
   let message = "";
 
@@ -166,12 +171,16 @@ const orderStatusNotification = async (order) => {
   if (message) await sendNotification("status", order.id, message);
 };
 
-// ---------------- ROUTES ----------------
 
-// PRODUCTS
+// ROUTES
+
+// PRODUCTS ----------------
+
+
 app.post("/products", upload.single("image"), async (req, res) => {
   try {
     let { name, price, stock, category, description } = req.body;
+
     if (!req.file) return res.status(400).json({ error: "Product image is required" });
 
     stock = Number(stock);
@@ -184,6 +193,7 @@ app.post("/products", upload.single("image"), async (req, res) => {
       [name, price, stock, category, description, image_url]
     );
 
+    // Send notification like orderStatus
     await lowStockNotification({ id: result.insertId, name, stock });
 
     const supplyAlert = stock < 20 ? "LOW ON SUPPLIES" : "OK";
@@ -199,10 +209,18 @@ app.post("/products", upload.single("image"), async (req, res) => {
   }
 });
 
+
+
 app.get("/products", async (req, res) => {
   try {
     const [rows] = await db.query("SELECT * FROM products ORDER BY created_at DESC");
-    const products = rows.map(p => ({ ...p, supply_alert: p.stock < 20 ? "LOW ON SUPPLIES" : "OK" }));
+
+   
+    const products = rows.map(p => ({
+      ...p,
+      supply_alert: p.stock < 20 ? "LOW ON SUPPLIES" : "OK"
+    }));
+
     res.json(products);
   } catch (err) {
     console.error("Fetch products error:", err);
@@ -213,20 +231,84 @@ app.get("/products", async (req, res) => {
 app.get("/products/:id", async (req, res) => {
   try {
     const { id } = req.params;
+
     const [rows] = await db.query("SELECT * FROM products WHERE id = ?", [id]);
-    if (!rows.length) return res.status(404).json({ error: "Product not found" });
+
+    if (!rows.length) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
     const product = rows[0];
-    res.json({ ...product, supply_alert: product.stock < 20 ? "LOW ON SUPPLIES" : "OK" });
+
+    res.json({
+      ...product,
+      supply_alert: product.stock < 20 ? "LOW ON SUPPLIES" : "OK"
+    });
+
   } catch (err) {
     console.error("Fetch product error:", err);
     res.status(500).json({ error: "Failed to load product" });
   }
 });
 
+// app.put("/products/:id", upload.single("image"), async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     let { name, price, stock, category, description, existingImageUrl } = req.body;
+
+//     stock = Number(stock);
+//     price = Number(price);
+
+//      const [prevRows] = await db.query("SELECT stock, name FROM products WHERE id = ?", [id]);
+//     if (!prevRows.length) return res.status(404).json({ error: "Product not found" });
+
+//     const prevStock = Number(prevRows[0].stock);
+//     const prevName = prevRows[0].name;
+
+//     console.log("REQ FILE:", req.file);
+
+//     let image_url = existingImageUrl;
+
+//      if (req.file) {
+//       image_url = req.file.path || req.file.secure_url;
+//     }
+
+
+//     await db.query(
+//       `UPDATE products SET name=?, price=?, stock=?, category=?, description=?, image_url=? WHERE id=?`,
+//       [name, price, stock, category, description, image_url, id]
+//     );
+
+
+//      const productName = name || prevName;
+
+//     if (stock < 20 && prevStock >= 20) {
+//       await sendNotification(
+//         "low on supplies",
+//         id,
+//         `Product '${productName}' is low on supplies!`
+//       );
+//     }
+
+//     const supplyAlert = Number(stock) < 20 ? "LOW ON SUPPLIES" : "OK";
+
+//     res.json({
+//       message: "Product updated successfully",
+//       supply_alert: supplyAlert,
+//       product: { id, name, price, stock, category, description, image_url }
+//     });
+
+//   } catch (err) {
+//     console.error("Update product error:", err);
+//     res.status(500).json({ error: "Failed to update product" });
+//   }
+// });
+
 app.put("/products/:id", upload.single("image"), async (req, res) => {
   try {
     const { id } = req.params;
     let { name, price, stock, category, description, existingImageUrl } = req.body;
+
     stock = Number(stock);
     price = Number(price);
 
@@ -234,8 +316,11 @@ app.put("/products/:id", upload.single("image"), async (req, res) => {
     if (!prevRows.length) return res.status(404).json({ error: "Product not found" });
 
     const prevStock = Number(prevRows[0].stock);
+
     let image_url = existingImageUrl || prevRows[0].image_url;
-    if (req.file) image_url = req.file.secure_url;
+    if (req.file) {
+      image_url = req.file.secure_url;
+    }
 
     await db.query(
       `UPDATE products SET name=?, price=?, stock=?, category=?, description=?, image_url=? WHERE id=?`,
@@ -245,37 +330,58 @@ app.put("/products/:id", upload.single("image"), async (req, res) => {
     const [rows] = await db.query("SELECT id, name, stock FROM products WHERE id=?", [id]);
     const updated = rows[0];
 
-    if (Number(updated.stock) < 20) await lowStockNotification(updated);
+    if (Number(updated.stock) < 20) {
+      await lowStockNotification(updated);
+    }
+
 
     const supplyAlert = updated.stock < 20 ? "LOW ON SUPPLIES" : "OK";
 
     res.json({
       message: "Product updated successfully",
       supply_alert: supplyAlert,
-      product: { id, name, price, stock, category, description, image_url }
+      product: {
+        id,
+        name,
+        price,
+        stock,
+        category,
+        description,
+        image_url
+      }
     });
+
   } catch (err) {
     console.error("Update product error:", err);
     res.status(500).json({ error: "Failed to update product" });
   }
 });
 
+
+
 app.delete("/products/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const [rows] = await db.query("SELECT image_url FROM products WHERE id = ?", [id]);
-    if (!rows.length) return res.status(404).json({ error: "Product not found" });
 
-    const imageUrl = rows[0].image_url;
-    if (imageUrl) {
-      const urlParts = imageUrl.split("/");
-      const fileWithExt = urlParts[urlParts.length - 1];
-      const fileName = fileWithExt.split(".")[0];
-      const publicId = `products/${fileName}`;
-      await cloudinary.uploader.destroy(publicId);
+    const [rows] = await db.query("SELECT image_url FROM products WHERE id = ?", [id]);
+
+    if (!rows.length) {
+      return res.status(404).json({ error: "Product not found" });
     }
 
+    const imageUrl = rows[0].image_url;
+
+    if (imageUrl) {
+      const urlParts = imageUrl.split("/");  
+      const fileWithExt = urlParts[urlParts.length - 1];  
+      const fileName = fileWithExt.split(".")[0];          
+      const publicId = `products/${fileName}`;        
+
+      await cloudinary.uploader.destroy(publicId);
+        }
+
     await db.query("DELETE FROM products WHERE id = ?", [id]);
+
     res.json({ message: "Product deleted successfully" });
   } catch (err) {
     console.error("Delete product error:", err);
@@ -283,43 +389,8 @@ app.delete("/products/:id", async (req, res) => {
   }
 });
 
-// ---------------- USERS ----------------
 
-// Secure Register route (bcrypt)
-app.post("/register", async (req, res) => {
-  try {
-    const { fullName, name, email, contactNumber, contact_number, role, password } = req.body;
-
-    // Accept either "fullName" or "name" / "contactNumber" or "contact_number" to be flexible
-    const userName = fullName || name;
-    const contact = contactNumber || contact_number || null;
-    const userRole = role || "Customer";
-
-    if (!userName || !email || !password) {
-      return res.status(400).json({ error: "Name, email, and password are required." });
-    }
-
-    // Check duplicate email
-    const [existing] = await db.query("SELECT id FROM users WHERE email = ?", [email]);
-    if (existing.length) return res.status(400).json({ error: "Email already in use." });
-
-    // Hash password
-    const saltRounds = 10;
-    const hashed = await bcrypt.hash(password, saltRounds);
-
-    const [result] = await db.query(
-      "INSERT INTO users (name, email, contact_number, role, password) VALUES (?, ?, ?, ?, ?)",
-      [userName, email, contact, userRole, hashed]
-    );
-
-    res.json({ success: true, message: "User registered.", user_id: result.insertId });
-  } catch (err) {
-    console.error("Register error:", err);
-    res.status(500).json({ error: "Registration failed." });
-  }
-});
-
-// Get users
+// USERS ----------------
 app.get("/users", async (req, res) => {
   try {
     const [results] = await db.query("SELECT id, name, email, contact_number, role FROM users");
@@ -332,7 +403,10 @@ app.get("/users", async (req, res) => {
 app.get("/users/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const [results] = await db.query("SELECT id, name, email, contact_number, role FROM users WHERE id=?", [id]);
+    const [results] = await db.query(
+      "SELECT id, name, email, contact_number, role FROM users WHERE id=?",
+      [id]
+    );
     if (results.length === 0) return res.status(404).json({ error: "User not found" });
     res.json(results[0]);
   } catch (err) {
@@ -340,32 +414,29 @@ app.get("/users/:id", async (req, res) => {
   }
 });
 
+
 app.post("/users", async (req, res) => {
   try {
     const { name, email, contact_number, role, password } = req.body;
-    // if password provided, hash it for safety
-    const hashed = password ? await bcrypt.hash(password, 10) : null;
     const [result] = await db.query(
       "INSERT INTO users (name, email, contact_number, role, password) VALUES (?, ?, ?, ?, ?)",
-      [name, email, contact_number || null, role, hashed]
+      [name, email, contact_number || null, role, password]
     );
     res.json({ message: "User created!", user_id: result.insertId });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+}); 
 
-// Update user
 app.put("/users/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { name, email, contact_number, role, password } = req.body;
-    const hashed = password ? await bcrypt.hash(password, 10) : null;
     const query = password
       ? "UPDATE users SET name=?, email=?, contact_number=?, role=?, password=? WHERE id=?"
       : "UPDATE users SET name=?, email=?, contact_number=?, role=? WHERE id=?";
     const params = password
-      ? [name, email, contact_number || null, role, hashed, id]
+      ? [name, email, contact_number || null, role, password, id]
       : [name, email, contact_number || null, role, id];
     await db.query(query, params);
     res.json({ message: "User updated!" });
@@ -442,13 +513,23 @@ app.post("/orders", async (req, res) => {
 
     const orderId = orderResult.insertId;
     const orderItemsValues = orderItemsData.map(i => [orderId, i.product_id, i.product_name, i.quantity, i.price, i.total]);
-    await conn.query("INSERT INTO order_items (order_id, product_id, product_name, quantity, price, total) VALUES ?", [orderItemsValues]);
+    await conn.query(
+      "INSERT INTO order_items (order_id, product_id, product_name, quantity, price, total) VALUES ?",
+      [orderItemsValues]
+    );
 
+    // Update stock
     for (const item of orderItemsData) {
       const product = products.find(p => p.id === item.product_id);
       await conn.query("UPDATE products SET stock=? WHERE id=?", [product.stock - item.quantity, product.id]);
-      const [updated] = await conn.query("SELECT id, name, stock FROM products WHERE id=?", [product.id]);
+
+      const [updated] = await conn.query(
+      "SELECT id, name, stock FROM products WHERE id=?",
+      [product.id]
+    );
       if (updated.length > 0) await lowStockNotification(updated[0]);
+
+
     }
 
     await conn.commit();
@@ -473,11 +554,10 @@ app.put("/orders/:id/status", async (req, res) => {
     if (/pending/i.test(normalizedStatus)) normalizedStatus = "Pending";
 
     await db.query("UPDATE orders SET status=? WHERE id=?", [normalizedStatus, id]);
-
     const [results] = await db.query("SELECT id, user_name, status FROM orders WHERE id=?", [id]);
     if (results.length > 0) await orderStatusNotification(results[0]);
 
-    res.json({ message: "Status updated!", status: normalizedStatus });
+    res.json({ message: "Status updated!" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -529,49 +609,59 @@ app.delete("/notifications/:id", async (req, res) => {
   }
 });
 
-// ---------------- AUTH: Login & Logout ----------------
+// Login & Logout ----------------
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: "Email and password are required." });
+  if (!email || !password)
+    return res.status(400).json({ error: "Email and password are required." });
 
   try {
-    const [rows] = await db.query("SELECT id, name, email, password, role FROM users WHERE email=?", [email]);
+    const [rows] = await db.query(
+      "SELECT id, name, email, password, role FROM users WHERE email=?",
+      [email]
+    );
+
     if (!rows.length) return res.status(400).json({ error: "Invalid email or password." });
 
     const user = rows[0];
 
-    // Compare hashed password
-    const match = await bcrypt.compare(password, user.password || "");
-    if (!match) return res.status(400).json({ error: "Invalid email or password." });
+    // Plain-text check (use bcrypt in production)
+    if (password !== user.password)
+      return res.status(400).json({ error: "Invalid email or password." });
 
-    // Save session (do not expose password)
-    req.session.user = { id: user.id, name: user.name, email: user.email, role: user.role };
+    if (user.role !== "admin")
+      return res.status(403).json({ error: "Access denied. Admins only." });
+
+    req.session.user = { id: user.id, name: user.name, role: user.role };
     res.json({ message: "Login successful", user: req.session.user });
   } catch (err) {
-    console.error("Login error:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
 app.post("/logout", (req, res) => {
   req.session.destroy(err => {
-    if (err) {
-      console.error("Logout error:", err);
-      return res.status(500).json({ error: "Logout failed" });
-    }
-    // Clear cookie with same attributes used in session (for safety)
-    res.clearCookie("connect.sid", { path: "/", httpOnly: true, secure: isProd, sameSite: isProd ? "none" : "lax" });
+    if (err) return res.status(500).json({ error: "Logout failed" });
+    res.clearCookie("connect.sid");
     res.json({ message: "Logged out successfully" });
   });
 });
 
-// Protected dashboard (admin only)
+// ---------------- DASHBOARD (PROTECTED) ----------------
 app.get("/dashboard", requireAdmin, (req, res) => {
   res.json({ message: "Welcome Admin!", user: req.session.user });
 });
 
+
 // Root
+app.get("/", (req, res) => {
+  res.send("Welcome to Camarcl Flowershop Backend!");
+});
+
 app.get("/", (req, res) => res.send("Backend running!"));
 
-// Start server (use httpServer so Socket.IO works)
-httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// // Catch-all
+// app.all("*", (req, res) => res.status(404).json({ error: "Route not found" }));
+
+// Start server
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
