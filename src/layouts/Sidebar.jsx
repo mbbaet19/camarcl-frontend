@@ -55,10 +55,15 @@ export default function Sidebar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
-
+  const [user, setUser] = useState(null);
   const socketRef = useRef(null);
   const audioRef = useRef(null);
 
+  
+  useEffect(() => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) setUser(JSON.parse(storedUser));
+    }, []);
 
   useEffect(() => {
     const a = new Audio("/notification.mp3");
@@ -264,9 +269,14 @@ export default function Sidebar() {
 
 
             <div className="relative">
-              <button onClick={() => setUserMenuOpen((s) => !s)} className="flex items-center space-x-2 bg-green-600 text-white px-3 py-1.5 rounded-full focus:outline-none hover:bg-green-700 transition" aria-haspopup="true" aria-expanded={userMenuOpen}>
+              <button
+                onClick={() => setUserMenuOpen((s) => !s)}
+                className="flex items-center space-x-2 bg-green-600 text-white px-3 py-1.5 rounded-full focus:outline-none hover:bg-green-700 transition"
+                aria-haspopup="true"
+                aria-expanded={userMenuOpen}
+              >
                 <IconUser />
-                <span className="hidden sm:block font-medium">Admin User</span>
+                <span className="hidden sm:block font-medium">{user?.name || "Admin"}</span>
               </button>
 
               {userMenuOpen && (
@@ -277,9 +287,25 @@ export default function Sidebar() {
                   <NavLink to="/account-settings" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 w-full px-4 py-2 text-gray-700 hover:bg-gray-100">
                     <IconSettings /> Settings
                   </NavLink>
-                  <button onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 w-full px-4 py-2 text-red-600 hover:bg-red-50 focus:outline-none">
+                <button
+                    onClick={async () => {
+                      try {
+                        await axios.post(`${API_URL}/logout`, {}, { withCredentials: true });
+
+                        // Clear localStorage user info
+                        localStorage.removeItem("user");
+
+                        // Optionally redirect to login page
+                        window.location.href = "/login"; 
+                      } catch (err) {
+                        console.error("Logout failed:", err);
+                      }
+                    }}
+                    className="flex items-center gap-2 w-full px-4 py-2 text-red-600 hover:bg-red-50 focus:outline-none"
+                  >
                     <IconLogout /> Logout
                   </button>
+
                 </div>
               )}
             </div>

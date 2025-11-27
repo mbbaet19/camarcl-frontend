@@ -1,60 +1,82 @@
-import React, { useEffect, useState, useCallback, Suspense, lazy } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-
-const FiUser = lazy(() => import("react-icons/fi").then(mod => ({ default: mod.FiUser })));
 const FiSave = lazy(() => import("react-icons/fi").then(mod => ({ default: mod.FiSave })));
 const FiX = lazy(() => import("react-icons/fi").then(mod => ({ default: mod.FiX })));
 const FiEdit2 = lazy(() => import("react-icons/fi").then(mod => ({ default: mod.FiEdit2 })));
 
 export default function Profile() {
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+
   const [profile, setProfile] = useState({
-    first_name: "",
-    middle_name: "",
-    last_name: "",
+    name: "",
     email: "",
-    contact: "",
+    contact_number: "",
   });
   const [editMode, setEditMode] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  const fetchProfile = useCallback(async () => {
-    try {
-      const res = await axios.get(`${API_URL}/admin/profile`);
-      setProfile(res.data);
-    } catch (err) {
-      console.error("Error fetching profile:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // Fetch user info from backend
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/users/${storedUser.id}`, { withCredentials: true });
+        setProfile({
+          name: res.data.name || "",
+          email: res.data.email || "",
+          contact_number: res.data.contact_number || "",
+        });
 
-  useEffect(() => { fetchProfile(); }, [fetchProfile]);
+        // Update localStorage with ID and role intact
+        localStorage.setItem("user", JSON.stringify({
+          id: res.data.id,
+          name: res.data.name,
+          email: res.data.email,
+          contact_number: res.data.contact_number,
+          role: res.data.role
+        }));
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+        setProfile({
+          name: storedUser.name || "",
+          email: storedUser.email || "",
+          contact_number: storedUser.contact_number || "",
+        });
+      }
+    };
 
-  const handleChange = useCallback((e) => {
+    if (storedUser.id) fetchUser();
+  }, [storedUser.id]);
+
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setProfile(prev => ({ ...prev, [name]: value }));
-  }, []);
+  };
 
-  const handleSave = useCallback(async () => {
+  const handleSave = async () => {
     try {
-      await axios.put(`${API_URL}/admin/profile`, profile);
+      const updatedData = {
+        ...profile,
+        role: storedUser.role, // preserve role
+      };
+
+      await axios.put(`${API_URL}/users/${storedUser.id}`, updatedData, { withCredentials: true });
+
+      // Update localStorage with ID and role intact
+      localStorage.setItem("user", JSON.stringify({
+        id: storedUser.id,
+        ...profile,
+        role: storedUser.role
+      }));
+
       setEditMode(false);
       alert("Profile updated successfully!");
     } catch (err) {
       console.error("Error updating profile:", err);
+      alert("Failed to update profile.");
     }
-  }, [profile]);
-
-  if (loading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-50" aria-busy="true">
-        <p className="text-gray-500 text-lg">Loading profile...</p>
-      </main>
-    );
-  }
+  };
 
   return (
     <main className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
@@ -62,30 +84,11 @@ export default function Profile() {
         <h1 className="text-3xl font-bold text-green-700 mb-6">Profile</h1>
 
         <section className="bg-white shadow-sm sm:shadow-md lg:shadow-lg rounded-2xl p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {["first_name", "middle_name", "last_name"].map(field => (
-              <div key={field}>
-                <label htmlFor={field} className="text-sm text-gray-500 capitalize">{field.replace("_", " ")}</label>
-                {editMode ? (
-                  <input
-                    id={field}
-                    name={field}
-                    value={profile[field]}
-                    onChange={handleChange}
-                    className="mt-1 w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                ) : (
-                  <p className="mt-1 font-medium text-gray-700">{profile[field] || "-"}</p>
-                )}
-              </div>
-            ))}
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {["email", "contact"].map(field => (
+            {["name", "email", "contact_number"].map(field => (
               <div key={field}>
-                <label htmlFor={field} className="text-sm text-gray-500">
-                  {field === "email" ? "Email Address:" : "Contact Number:"}
+                <label htmlFor={field} className="text-sm text-gray-500 capitalize">
+                  {field === "name" ? "Full Name" : field === "email" ? "Email Address" : "Contact Number"}
                 </label>
                 {editMode ? (
                   <input
@@ -110,7 +113,7 @@ export default function Profile() {
                   <button
                     type="button"
                     onClick={handleSave}
-                    className="flex items-center gap-2 w-full sm:w-auto justify-center bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="flex items-center gap-2 w-full justify-center bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
                     <FiSave className="w-5 h-5" />
                     Save Changes
@@ -118,7 +121,7 @@ export default function Profile() {
                   <button
                     type="button"
                     onClick={() => setEditMode(false)}
-                    className="flex items-center gap-2 w-full sm:w-auto justify-center bg-gray-300 px-5 py-2 rounded-lg hover:bg-gray-400 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                    className="flex items-center gap-2 w-full justify-center bg-gray-300 px-5 py-2 rounded-lg hover:bg-gray-400 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-gray-400"
                   >
                     <FiX className="w-5 h-5" />
                     Cancel
@@ -128,7 +131,7 @@ export default function Profile() {
                 <button
                   type="button"
                   onClick={() => setEditMode(true)}
-                  className="flex items-center gap-2 w-full sm:w-auto justify-center bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex items-center gap-2 w-full justify-center bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <FiEdit2 className="w-5 h-5" />
                   Edit Profile

@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 export default function AccountSettings() {
+  // Get logged-in user from localStorage
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+  const [user, setUser] = useState(storedUser);
   const [passwords, setPasswords] = useState({
     currentPassword: "",
     newPassword: "",
@@ -11,12 +15,35 @@ export default function AccountSettings() {
   });
   const [loading, setLoading] = useState(false);
 
+  // Fetch latest user info from backend
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        if (!storedUser.id) return;
+        const res = await axios.get(`${API_URL}/users/${storedUser.id}`, { withCredentials: true });
+        setUser(res.data);
+
+        // Keep localStorage in sync
+        localStorage.setItem("user", JSON.stringify(res.data));
+      } catch (err) {
+        console.error("Error fetching user:", err);
+      }
+    };
+
+    fetchUser();
+  }, [storedUser.id]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setPasswords({ ...passwords, [name]: value });
   };
 
   const handleChangePassword = async () => {
+    if (!user.id) {
+      alert("User not found.");
+      return;
+    }
+
     if (passwords.newPassword !== passwords.confirmPassword) {
       alert("New password and confirm password do not match!");
       return;
@@ -24,7 +51,16 @@ export default function AccountSettings() {
 
     try {
       setLoading(true);
-      await axios.put(`${API_URL}/admin/change-password`, passwords);
+
+      // Update password via backend
+      await axios.put(`${API_URL}/users/${user.id}`, {
+        password: passwords.newPassword,
+        role: user.role, // preserve role
+        name: user.name, // preserve existing info
+        email: user.email,
+        contact_number: user.contact_number,
+      }, { withCredentials: true });
+
       setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
       alert("Password updated successfully!");
     } catch (err) {
@@ -36,11 +72,14 @@ export default function AccountSettings() {
   };
 
   const handleDeleteAccount = async () => {
+    if (!user.id) return;
+
     if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) return;
 
     try {
-      await axios.delete(`${API_URL}/admin/delete-account`);
+      await axios.delete(`${API_URL}/users/${user.id}`, { withCredentials: true });
       alert("Account deleted successfully!");
+      localStorage.removeItem("user");
       window.location.href = "/";
     } catch (err) {
       console.error("Error deleting account:", err);
@@ -56,10 +95,12 @@ export default function AccountSettings() {
           Account Settings
         </h1>
 
-
         <section className="bg-white shadow-xl rounded-2xl p-6 sm:p-8 space-y-6">
           <h2 className="text-2xl font-semibold text-gray-700">Change Password</h2>
-          <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleChangePassword(); }}>
+          <form
+            className="space-y-4"
+            onSubmit={(e) => { e.preventDefault(); handleChangePassword(); }}
+          >
             {["currentPassword", "newPassword", "confirmPassword"].map((field, idx) => (
               <div key={idx} className="flex flex-col">
                 <label htmlFor={field} className="text-sm text-gray-500 font-medium">
@@ -88,7 +129,6 @@ export default function AccountSettings() {
           </form>
         </section>
 
-     
         <section className="bg-white shadow-xl rounded-2xl p-6 sm:p-8 space-y-4 border border-red-100">
           <h2 className="text-2xl font-semibold text-gray-700">Delete Account</h2>
           <p className="text-sm text-gray-500">
