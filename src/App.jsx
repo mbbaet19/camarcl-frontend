@@ -1,34 +1,30 @@
 // src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+import Navbar from "./components/Navbar.jsx";
+import Footer from "./components/Footer.jsx";
 import Home from "./pages/Home.jsx";
 import Shop from "./pages/Shop.jsx";
-import CartPage from "./pages/CartPage";
-import Checkout from "./pages/Checkout";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import Policies from "./pages/Policies";
-import FAQ from "./pages/FAQ";
-import Profile from "./pages/Profile";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminProducts from "./pages/AdminProducts";
-import SignInModal from "./components/SignInModal";
-import SignUpModal from "./components/SignUpModal";
+import CartPage from "./pages/CartPage.jsx";
+import Checkout from "./pages/Checkout.jsx";
+import About from "./pages/About.jsx";
+import Contact from "./pages/Contact.jsx";
+import Policies from "./pages/Policies.jsx";
+import FAQ from "./pages/FAQ.jsx";
+import Profile from "./pages/Profile.jsx";
+import Login from "./pages/Login.jsx";
+
 import { CartProvider } from "./context/CartContext";
 
 // ProtectedRoute component
 const ProtectedRoute = ({ user, requiredRole, children }) => {
-  if (!user) return <Navigate to="/" replace />;
+  if (!user) return <Navigate to="/login" replace />;
   if (requiredRole && user.role !== requiredRole) return <Navigate to="/" replace />;
   return children;
 };
 
 function App() {
   const [user, setUser] = useState(null);
-  const [showSignIn, setShowSignIn] = useState(false);
-  const [showSignUp, setShowSignUp] = useState(false);
 
   // Fetch session from backend on load
   useEffect(() => {
@@ -54,15 +50,7 @@ function App() {
   return (
     <BrowserRouter>
       <CartProvider>
-        <Navbar
-          user={user}
-          onSignIn={() => setShowSignIn(true)}
-          onSignUp={() => setShowSignUp(true)}
-          setUser={setUser}
-        />
-
-        {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} setUser={setUser} />}
-        {showSignUp && <SignUpModal onClose={() => setShowSignUp(false)} />}
+        <Navbar user={user} setUser={setUser} />
 
         <Routes>
           {/* Public routes */}
@@ -74,6 +62,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/policies" element={<Policies />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/login" element={<Login setUser={setUser} />} />
 
           {/* User protected */}
           <Route
@@ -81,24 +70,6 @@ function App() {
             element={
               <ProtectedRoute user={user}>
                 <Profile />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Admin protected */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute user={user} requiredRole="admin">
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/products"
-            element={
-              <ProtectedRoute user={user} requiredRole="admin">
-                <AdminProducts />
               </ProtectedRoute>
             }
           />

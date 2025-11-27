@@ -1,6 +1,6 @@
+// src/pages/Contact.jsx
 import React, { useState } from "react";
 import { Mail, Phone, MapPin, Facebook, Instagram } from "lucide-react";
-
 
 const Contact = () => {
   const [form, setForm] = useState({
@@ -23,19 +23,22 @@ const Contact = () => {
     setStatus("Sending...");
 
     try {
-      await addDoc(collection(db, "messages"), {
-        name: form.name,
-        email: form.email,
-        message: form.message,
-        createdAt: serverTimestamp()
+      const res = await fetch("http://localhost:5500/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form)
       });
 
-      setStatus("Message sent successfully! 🌿");
-      setForm({ name: "", email: "", message: "" });
+      if (res.ok) {
+        setStatus("Message sent successfully! 🌿");
+        setForm({ name: "", email: "", message: "" });
+      } else {
+        setStatus("Error sending message. Please try again.");
+      }
 
       setTimeout(() => setStatus(""), 3000);
     } catch (error) {
-      console.error("Error saving message:", error);
+      console.error("Error sending message:", error);
       setStatus("Error sending message. Please try again.");
     }
   };
@@ -131,8 +134,8 @@ const Contact = () => {
             <div className="mt-6">
               <h3 className="font-semibold mb-2 text-green-700">Follow Us</h3>
               <div className="flex gap-4 text-green-700">
-                <a href="facebook.com/camarclplants" className="hover:text-green-900"><Facebook size={26} /></a>
-                <a href="@camarclplants" className="hover:text-green-900"><Instagram size={26} /></a>
+                <a href="https://facebook.com/camarclplants" className="hover:text-green-900" target="_blank" rel="noopener noreferrer"><Facebook size={26} /></a>
+                <a href="https://instagram.com/camarclplants" className="hover:text-green-900" target="_blank" rel="noopener noreferrer"><Instagram size={26} /></a>
               </div>
             </div>
           </div>

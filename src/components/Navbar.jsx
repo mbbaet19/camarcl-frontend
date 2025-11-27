@@ -1,36 +1,55 @@
-import React, { useEffect, useState } from "react";
+// src/components/Navbar.jsx
+import React, { useEffect, useState, useNavigate } from "react";
 import { Link } from "react-router-dom";
 import { Search, ShoppingCart, ChevronDown } from "lucide-react";
 
-const Navbar = ({ onSignIn, onSignUp }) => {
+const Navbar = ({ onSignIn, setUser }) => {
   const [userData, setUserData] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const navigate = useNavigate();
 
+
+  // Fetch current session on mount
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const ref = doc(db, "users", user.uid);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          setUserData(snap.data());
+    const fetchSession = async () => {
+      try {
+        const res = await fetch("http://localhost:5500/dashboard", {
+          credentials: "include", // important for session cookie
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUserData(data.user);
+          setUser?.(data.user); // update App state if setUser is passed
+        } else {
+          setUserData(null);
+          setUser?.(null);
         }
-      } else {
+      } catch (err) {
+        console.error(err);
         setUserData(null);
+        setUser?.(null);
       }
-    });
-
-    return () => unsub();
+    };
+    fetchSession();
   }, []);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    window.location.href = "/";
+    try {
+      await fetch("http://localhost:5500/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      setUserData(null);
+      setUser?.(null);
+      window.location.href = "/"; // redirect to home after logout
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
   };
 
-  return (
+return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-
         {/* LOGO */}
         <Link to="/" className="flex items-center space-x-2">
           <img src="/logo.png" alt="logo" className="w-8 h-8" />
@@ -39,26 +58,16 @@ const Navbar = ({ onSignIn, onSignUp }) => {
           </span>
         </Link>
 
-        {/* NAVIGATION LINKS */}
+        {/* NAV LINKS */}
         <ul className="hidden md:flex space-x-6 font-medium text-gray-700">
           <li><Link to="/" className="hover:text-green-600">Home</Link></li>
-          <li><Link to="/products" className="hover:text-green-600">Shop</Link></li>
+          <li><Link to="/shop" className="hover:text-green-600">Shop</Link></li>
           <li><Link to="/about" className="hover:text-green-600">About</Link></li>
           <li><Link to="/contact" className="hover:text-green-600">Contact</Link></li>
-
-          {/* Admin Dashboard link */}
-          {/*userData?.role === "admin" && (
-            <li>
-              <Link to="/admin" className="hover:text-green-600 text-red-600 font-semibold">
-                Admin Dashboard
-              </Link>
-            </li>
-          )*/}
         </ul>
 
         {/* RIGHT SIDE */}
         <div className="flex items-center space-x-4">
-
           {/* Search */}
           <div className="relative hidden sm:block">
             <input
@@ -80,12 +89,15 @@ const Navbar = ({ onSignIn, onSignUp }) => {
               <button onClick={onSignIn} className="hover:text-green-600">
                 Sign In
               </button>
-              <button onClick={onSignUp} className="hover:text-green-600">
+              {/* Register now goes to Login page */}
+              <button
+                onClick={() => navigate("/login")}
+                className="hover:text-green-600"
+              >
                 Register
               </button>
             </>
           ) : (
-            // DROPDOWN MENU
             <div className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -125,7 +137,6 @@ const Navbar = ({ onSignIn, onSignUp }) => {
               )}
             </div>
           )}
-
         </div>
       </div>
     </nav>
