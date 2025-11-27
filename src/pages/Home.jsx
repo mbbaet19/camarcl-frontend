@@ -1,18 +1,27 @@
-// src/pages/Home.jsx
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-//import { collection, getDocs } from "firebase/firestore";
-//import { db } from "../firebaseConfig.js";
+import axios from "axios";
 import { useCart } from "../context/CartContext";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
   const { addToCart } = useCart();
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/products"); // replace with your backend endpoint
+        setProducts(response.data); // assume backend returns an array of products
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   return (
     <div className="w-full">
-
       {/* HERO / BANNER SECTION */}
       <div
         className="w-full h-[420px] bg-cover bg-center flex flex-col items-center justify-center text-center px-4"
@@ -84,28 +93,30 @@ export default function Home() {
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto px-4">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition"
-            >
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="w-full h-40 object-cover rounded"
-              />
-
-              <h3 className="font-semibold text-lg mt-3">{product.name}</h3>
-              <p className="text-green-700 font-medium">₱{product.price}</p>
-
-              <button
-                onClick={() => addToCart(product)}
-                className="w-full mt-4 bg-green-600 text-white py-2 rounded hover:bg-green-700"
+          {products.length > 0 ? (
+            products.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition"
               >
-                Add to Cart
-              </button>
-            </div>
-          ))}
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-full h-40 object-cover rounded"
+                />
+                <h3 className="font-semibold text-lg mt-3">{product.name}</h3>
+                <p className="text-green-700 font-medium">₱{product.price}</p>
+                <button
+                  onClick={() => addToCart(product)}
+                  className="w-full mt-4 bg-green-600 text-white py-2 rounded hover:bg-green-700"
+                >
+                  Add to Cart
+                </button>
+              </div>
+            ))
+          ) : (
+            <p className="col-span-4 text-center text-gray-500">Loading products...</p>
+          )}
         </div>
 
         <div className="text-center mt-10">
