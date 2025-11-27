@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { useCart } from "../context/CartContext";
 
-
 const Checkout = () => {
   const { cartItems, clearCart, cartTotal } = useCart();
   const [formData, setFormData] = useState({
@@ -21,18 +20,23 @@ const Checkout = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+
     try {
-      await addDoc(collection(db, "orders"), {
+      // For now, we just log the order to the console
+      console.log("Order submitted:", {
         ...formData,
         items: cartItems,
         total: cartTotal,
-        createdAt: serverTimestamp(),
+        createdAt: new Date().toISOString(),
       });
+
+      // Clear cart and show success message
       clearCart();
       setSuccess(true);
     } catch (error) {
       console.error("Error saving order:", error);
     }
+
     setIsSubmitting(false);
   };
 
